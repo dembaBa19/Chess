@@ -1,4 +1,4 @@
-package Chess;
+package chess;
 
 public class King extends Piece {
 
@@ -6,8 +6,6 @@ public class King extends Piece {
 		super(rank, file, color);
 		// TODO Auto-generated constructor stub
 	}
-	
-	
 	
 	public int[][] movement(Piece board[][], boolean white_to_move,  int enpassantR, int enpassantF) {
 		
