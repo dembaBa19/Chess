@@ -16,158 +16,153 @@ import javax.swing.JPanel;
 
 public class Chess extends JPanel implements MouseListener {
 
-	/*(public boolean isMoveLegal(Piece figura, int fromRank, int fromFile, int toRank, int toFile) {
-		if(fromRank==toRank && fromFile==toFile) {
-			return false;
-		}
-		return true;
-	}*/
-	
-	public boolean canBeReached(int rank, int file, boolean white_turn) {
-		for(int i=0; i<8; i++) {
-			for(int j=0; j<8; j++) {
-				if(piece[i][j]!=null) {
-					if(white_turn) {
-						if(piece[i][j].color=="black") {
-							findLegalMoves(piece[i][j], i, j);
-							
-						}
-					} else {
-						if(piece[i][j].color=="white") {
-							findLegalMoves(piece[i][j], i, j);
-						}
-					}
-				}
-			}
-		}
-		
-		if(legal[rank][file]) {
-			return true;
-		}
-		return false;
-	}
-	
-	public void findLegalMoves(Piece figura, int rank, int file) {
+	public int[][] findLegalMoves (Piece board[][], Piece figura, int rank, int file) {
 		int moves[][] = new int[64][2];
-		moves = figura.movement(piece, white_to_move, enpassantR, enpassantF);
+		moves = figura.movement(board, white_to_move, enpassantR, enpassantF);
 		
-		for(int i=1; i<=8; i++) {
-			for(int j=1; j<=8; j++) {
-				legal[i][j]=false;
-			}
-		}
-		
-		for(int i=0; moves[i][0]!=0; i++) {
-			legal[moves[i][0]][moves[i][1]]=true;
-		}
+		return moves;
 	}
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		
-		int x = e.getX();
-		int y = e.getY();
-		
-		int row, column;
-		row = (8-((y-80)/squareSize));
-		column = (x-50)/squareSize + 1;
-		
-		if(!piece_clicked) {
-			if(row>=1 && row<=8 && column>=1 && column<=8) {
-				if(piece[row][column]!=null) {
-					if((piece[row][column].color=="white" && white_to_move) || (piece[row][column].color=="black" && !white_to_move)) {
-						piece_clicked=true;
-						mr = row;
-						mf = column;
-						findLegalMoves(piece[row][column], row, column);					
-						repaint();
-					}
+		if(gameOn) {
+			
+			int x = e.getX();
+			int y = e.getY();
+			
+			int row, column;
+			row = (8-((y-80)/squareSize));
+			column = (x-50)/squareSize + 1;
+			
+			for(int i=1; i<=8; i++) {
+				for(int j=1; j<=8; j++) {
+					board2[i][j] = piece[i][j];
 				}
 			}
-		} else {
-			if(legal[row][column]) {
-				if(piece[row][column]==null && piece[mr][mf] instanceof Pawn && column!=mf) {
-					//en croissant
-					if(white_to_move) {
-						piece[row-1][column]=null;
-					} else {
-						piece[row+1][column]=null;
-					}
-					
-					piece[row][column]=piece[mr][mf];
-					piece[mr][mf]=null;
-					piece[row][column].setRank(row);
-					piece[row][column].setFile(column);
-					white_to_move=!white_to_move;
-				} else {
-					if(piece[mr][mf] instanceof King && column!=mf+1 && column!=mf-1 && column!=mf) {
-						//move king						
-						piece[row][column]=null;
-						piece[row][column]=piece[mr][mf];
-						piece[mr][mf]=null;
-
-						piece[row][column].setRank(row);
-						piece[row][column].setFile(column);
-						
-						
-						//move rook
-						if(column-mf==2) {
-							piece[row][6]=null;
-							piece[row][6]=piece[row][8];
-							piece[row][8]=null;
+			
+			if(!piece_clicked) {
+				if(row>=1 && row<=8 && column>=1 && column<=8) {
+					if(piece[row][column]!=null) {
+						if((piece[row][column].color=="white" && white_to_move) || (piece[row][column].color=="black" && !white_to_move)) {
+							piece_clicked=true;
+							mr = row;
+							mf = column;
+							int [][] b = new int[64][2];
+							b = findLegalMoves(piece, piece[row][column], row, column);		
+											
 							
-							piece[row][6].setRank(row);
-							piece[row][6].setFile(6);
-							piece[row][6].moved=true;
-						} else {
-							piece[row][4]=null;
-							piece[row][4]=piece[row][1];
-							piece[row][1]=null;
-							
-							piece[row][4].setRank(row);
-							piece[row][4].setFile(4);
-							piece[row][4].moved=true;
-						}
-					
-						white_to_move=!white_to_move;
-					} else {
-						enpassantR=-1;
-						enpassantF=-1;
-						possible_croissnat=false;
-						if(piece[mr][mf] instanceof Pawn && (row-mr==2 || mr-row==2)) {
-							if(white_to_move) {
-								enpassantR=row-1;
-								enpassantF=mf;
-							} else {
-								enpassantR=row+1;
-								enpassantF=mf;
+							for(int i=1; i<=8; i++) {
+								for(int j=1; j<=8; j++) {
+									legal[i][j]=false;
+								}
 							}
-							possible_croissnat=true;
+							
+							for(int i=0; b[i][0]!=0; i++) {
+								legal[b[i][0]][b[i][1]]=true;
+							}
+							
+							repaint();
 						}
-						piece[row][column]=null;
-						piece[row][column]=piece[mr][mf];
-						piece[mr][mf]=null;
-					
-						piece[row][column].setRank(row);
-						piece[row][column].setFile(column);
-					
-						white_to_move=!white_to_move;
 					}
 				}
-				piece[row][column].moved=true;
+			} else {
+				if(legal[row][column]) {
+					if(piece[row][column]==null && piece[mr][mf] instanceof Pawn && column!=mf) {
+						//en croissant
+						if(white_to_move) {
+							piece[row-1][column]=null;
+						} else {
+							piece[row+1][column]=null;
+						}
+						
+						piece[row][column]=piece[mr][mf];
+						piece[mr][mf]=null;
+						piece[row][column].setRank(row);
+						piece[row][column].setFile(column);
+						white_to_move=!white_to_move;
+					} else {
+						if(piece[mr][mf] instanceof King && column!=mf+1 && column!=mf-1 && column!=mf) {
+							//move king
+							
+							piece[row][column]=null;
+							piece[row][column]=piece[mr][mf];
+							piece[mr][mf]=null;
+	
+							piece[row][column].setRank(row);
+							piece[row][column].setFile(column);
+							
+							
+													
+							//move rook
+							if(column-mf==2) {
+								piece[row][6]=null;
+								piece[row][6]=piece[row][8];
+								piece[row][8]=null;
+								
+								piece[row][6].setRank(row);
+								piece[row][6].setFile(6);
+								piece[row][6].moved=true;
+							} else {
+								piece[row][4]=null;
+								piece[row][4]=piece[row][1];
+								piece[row][1]=null;
+								
+								piece[row][4].setRank(row);
+								piece[row][4].setFile(4);
+								piece[row][4].moved=true;
+							}
+						
+							white_to_move=!white_to_move;
+						} else {
+							enpassantR=-1;
+							enpassantF=-1;
+							possible_croissnat=false;
+							if(piece[mr][mf] instanceof Pawn && (row-mr==2 || mr-row==2)) {
+								if(white_to_move) {
+									enpassantR=row-1;
+									enpassantF=mf;
+								} else {
+									enpassantR=row+1;
+									enpassantF=mf;
+								}
+								possible_croissnat=true;
+							}
+							piece[row][column]=null;
+							piece[row][column]=piece[mr][mf];
+							piece[mr][mf]=null;
+						
+							piece[row][column].setRank(row);
+							piece[row][column].setFile(column);
+						
+							white_to_move=!white_to_move;
+						}
+					}
+					piece[row][column].moved=true;
+				}
+				piece_clicked=false;
+				if(piece[row][column]!=null && ((piece[row][column].color=="white" && white_to_move) || (piece[row][column].color=="black" && !white_to_move))) {
+					piece_clicked=true;
+					mr = row;
+					mf = column;
+					
+					int [][] b = new int[64][2];
+					b=findLegalMoves(piece, piece[row][column], row, column);	
+					
+					for(int i=1; i<=8; i++) {
+						for(int j=1; j<=8; j++) {
+							legal[i][j]=false;
+						}
+					}
+					
+					for(int i=0; b[i][0]!=0; i++) {
+						legal[b[i][0]][b[i][1]]=true;
+					}
+					repaint();
+				}
 			}
-			piece_clicked=false;
-			if(piece[row][column]!=null && ((piece[row][column].color=="white" && white_to_move) || (piece[row][column].color=="black" && !white_to_move))) {
-				piece_clicked=true;
-				mr = row;
-				mf = column;
-				findLegalMoves(piece[row][column], row, column);					
-				repaint();
-			}
+			repaint();
 		}
-		repaint();
-		
-		
 	}
 
 	@Override
@@ -327,15 +322,25 @@ public class Chess extends JPanel implements MouseListener {
 	static String[][] board = new String[9][9];
 	static Square[][] square = new Square[9][9];
 	static Piece[][] piece = new Piece[9][9];
+	static Piece[][] board2 = new Piece[9][9];
 	
 	boolean piece_clicked = false;
 	int mr,mf;
 	
+	boolean white_alive;
+	boolean black_alive;
+	
 	boolean white_to_move;
 	
+	boolean gameOn;
+	
 	static boolean[][] legal = new boolean[9][9];
+	static boolean[][] legal_moves = new boolean[9][9];
 			
 	Piece p;
+	
+	static JLabel whiteWinnerlbl = new JLabel("White wins!");
+	static JLabel blackWinnerlbl = new JLabel("Black wins!");
 	
 	static ImageIcon black_dot;
 	static JLabel black_dot_label[] = new JLabel[64];
@@ -390,6 +395,18 @@ public class Chess extends JPanel implements MouseListener {
 		setBackground(Color.gray);
 		
 		this.setLayout(null);
+
+		whiteWinnerlbl.setBounds(180,120,300,300);
+		blackWinnerlbl.setBounds(180,120,300,300);
+		whiteWinnerlbl.setFont(new Font("Times New Roman", Font.PLAIN, 41));
+		blackWinnerlbl.setFont(new Font("Times New Roman", Font.PLAIN, 41));
+		whiteWinnerlbl.setForeground(move_red);
+		blackWinnerlbl.setForeground(move_red);
+		blackWinnerlbl.setVisible(false);
+		whiteWinnerlbl.setVisible(false);
+		this.add(whiteWinnerlbl);
+		this.add(blackWinnerlbl);
+
 		
 		JButton ng = new JButton("New Game");
 		ng.setFont(new Font("Times New Roman", Font.PLAIN, 17));
@@ -399,9 +416,19 @@ public class Chess extends JPanel implements MouseListener {
 								
 				piece_clicked = false;
 				white_to_move = true;
+				
 
 				drawFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 				//drawFEN("r3kb1r/pbqn1ppp/1pp2n2/4p3/6P1/1PB2N1P/P1PQPPB1/RN3RK1 b kq - 3 11");
+				
+				gameOn=true;
+				
+
+				blackWinnerlbl.setVisible(false);
+				whiteWinnerlbl.setVisible(false);
+				
+				white_alive=true;
+				black_alive=true;
 				
 				repaint();
 			}
@@ -526,6 +553,9 @@ public class Chess extends JPanel implements MouseListener {
 		black_dot_count=0;
 		black_frame_count=0;
 		
+		white_alive=false;
+		black_alive=false;
+		
 		for(int rank=8; rank>0; rank--) {
 			for(int file=1; file<=8; file++) {
 				if(rank%2 == file%2) {
@@ -548,16 +578,7 @@ public class Chess extends JPanel implements MouseListener {
 					}
 				}
 				
-				
-				
 				g.fillRect((8-rank)*squareSize + 50, (file-1)*squareSize + 50, squareSize, squareSize);
-				
-				/*if(square[rank][file]==null) {
-					square[rank][file] = new Square((8-rank)*squareSize + 50, (file-1)*squareSize + 50);
-				} else {
-					square[rank][file].setX((8-rank)*squareSize + 50);
-					square[rank][file].setY((file-1)*squareSize + 50);
-				}*/
 				
 				if(piece[rank][file]!=null) {
 					if(piece[rank][file] instanceof King) {
@@ -565,10 +586,12 @@ public class Chess extends JPanel implements MouseListener {
 							white_king_label = new JLabel (white_king);
 							white_king_label.setBounds((file-1)*squareSize + 50,(8-rank)*squareSize + 50,squareSize,squareSize);
 							this.add(white_king_label);
+							white_alive=true;
 						} else {
 							black_king_label = new JLabel (black_king);
 							black_king_label.setBounds((file-1)*squareSize + 50,(8-rank)*squareSize + 50,squareSize,squareSize);
 							this.add(black_king_label);
+							black_alive=true;
 						}
 					} else {
 						if(piece[rank][file] instanceof Queen) {
@@ -618,13 +641,27 @@ public class Chess extends JPanel implements MouseListener {
 									} else {
 										if(piece[rank][file] instanceof Pawn) {
 											if(piece[rank][file].color=="white") {
-												white_pawn_label[white_pawn_count].setBounds((file-1)*squareSize + 50,(8-rank)*squareSize + 50,squareSize,squareSize);
-												this.add(white_pawn_label[white_pawn_count]);
-												white_pawn_count++;
+												if(rank==8) {
+													white_queen_label[white_queen_count].setBounds((file-1)*squareSize + 50,(8-rank)*squareSize + 50,squareSize,squareSize);
+													this.add(white_queen_label[white_queen_count]);
+													white_queen_count++;
+													piece[rank][file] = new Queen(rank, file, "white");
+												} else {
+													white_pawn_label[white_pawn_count].setBounds((file-1)*squareSize + 50,(8-rank)*squareSize + 50,squareSize,squareSize);
+													this.add(white_pawn_label[white_pawn_count]);
+													white_pawn_count++;
+												}
 											} else {
-												black_pawn_label[black_pawn_count].setBounds((file-1)*squareSize + 50,(8-rank)*squareSize + 50,squareSize,squareSize);
-												this.add(black_pawn_label[black_pawn_count]);
-												black_pawn_count++;
+												if(rank==1) {
+													black_queen_label[black_queen_count].setBounds((file-1)*squareSize + 50,(8-rank)*squareSize + 50,squareSize,squareSize);
+													this.add(black_queen_label[black_queen_count]);
+													black_queen_count++;
+													piece[rank][file] = new Queen(rank, file, "black");
+												} else {
+													black_pawn_label[black_pawn_count].setBounds((file-1)*squareSize + 50,(8-rank)*squareSize + 50,squareSize,squareSize);
+													this.add(black_pawn_label[black_pawn_count]);
+													black_pawn_count++;
+												}
 											}
 										}
 									}
@@ -635,6 +672,15 @@ public class Chess extends JPanel implements MouseListener {
 				}
 				
 			}
+		}
+		
+		if(!black_alive) {
+			whiteWinnerlbl.setVisible(true);
+			gameOn=false;
+		}
+		if(!white_alive) {
+			blackWinnerlbl.setVisible(true);
+			gameOn=false;
 		}
 	}
 
